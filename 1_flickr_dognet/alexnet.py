@@ -9,7 +9,7 @@ Project: https://github.com/aymericdamien/TensorFlow-Examples/
 
 # Import MINST data
 import input_data
-mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
+mnist = input_data.read_data_sets()
 
 import tensorflow as tf
 
@@ -20,8 +20,8 @@ batch_size = 64
 display_step = 20
 
 # Network Parameters
-n_input = 784 # MNIST data input (img shape: 28*28)
-n_classes = 10 # MNIST total classes (0-9 digits)
+n_input = 40 * 40 # MNIST data input (img shape: 28*28)
+n_classes = 2 # MNIST total classes (0-9 digits)
 dropout = 0.8 # Dropout, probability to keep units
 
 # tf Graph input
@@ -41,7 +41,7 @@ def norm(name, l_input, lsize=4):
 
 def alex_net(_X, _weights, _biases, _dropout):
     # Reshape input picture
-    _X = tf.reshape(_X, shape=[-1, 28, 28, 1])
+    _X = tf.reshape(_X, shape=[-1, 40, 40, 1])
 
     # Convolution Layer
     conv1 = conv2d('conv1', _X, _weights['wc1'], _biases['bc1'])
@@ -85,9 +85,9 @@ weights = {
     'wc1': tf.Variable(tf.random_normal([3, 3, 1, 64])),
     'wc2': tf.Variable(tf.random_normal([3, 3, 64, 128])),
     'wc3': tf.Variable(tf.random_normal([3, 3, 128, 256])),
-    'wd1': tf.Variable(tf.random_normal([4*4*256, 1024])),
+    'wd1': tf.Variable(tf.random_normal([5*5*256, 1024])),
     'wd2': tf.Variable(tf.random_normal([1024, 1024])),
-    'out': tf.Variable(tf.random_normal([1024, 10]))
+    'out': tf.Variable(tf.random_normal([1024, n_classes]))
 }
 biases = {
     'bc1': tf.Variable(tf.random_normal([64])),
