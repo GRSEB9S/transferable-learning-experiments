@@ -1,3 +1,4 @@
+.vscode
 *.pyc
 1_flickr_dognet/settings.config
 1_flickr_dognet/data
