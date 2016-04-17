@@ -2,6 +2,9 @@ import input_data
 data = input_data.read_data_sets()
 
 import tensorflow as tf
+import csv
+import os.path
+import datetime
 
 # Parameters
 learning_rate = 0.001
@@ -94,11 +97,13 @@ accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 # Initializing the variables
 init = tf.initialize_all_variables()
 
-# Prepare output csv file
-import csv
-with open('performance.csv', 'w', newline='') as csvfile:
-    writer = csv.writer(csvfile, delimiter=' ',
-                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+# Initialize CSV output file
+fname = "performance " + str(datetime.datetime.utcnow()) + ".csv"
+fpath = os.path.join('results', fname)
+
+with open(fpath, 'a') as csvfile:
+    writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(["iteration", "accuracy", "loss"])
 
 # Launch the graph
 with tf.Session() as sess:
@@ -114,6 +119,11 @@ with tf.Session() as sess:
             acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
             # Calculate batch loss
             loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+            # Output benchmarks to csv
+            with open(fpath, 'a') as csvfile:
+                writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                writer.writerow([step*batch_size, "{:.5f}".format(acc), "{:.6f}".format(loss)])
+            # Print to console
             print "Iter " + str(step*batch_size) + ", Minibatch Loss= " + "{:.6f}".format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc)
         step += 1
     print "Optimization Finished!"
