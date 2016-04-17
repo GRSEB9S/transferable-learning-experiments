@@ -102,6 +102,12 @@ accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 # Initializing the variables
 init = tf.initialize_all_variables()
 
+# Prepare output csv file
+import csv
+with open('performance.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=' ',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
 # Launch the graph
 with tf.Session() as sess:
     sess.run(init)
