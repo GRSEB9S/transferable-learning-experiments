@@ -1,10 +1,10 @@
 import input_data
-data = input_data.read_data_sets()
-
 import tensorflow as tf
 import csv
 import os.path
 import datetime
+
+data = input_data.read_data_sets()
 
 # Parameters
 learning_rate = 0.001
@@ -99,33 +99,42 @@ init = tf.initialize_all_variables()
 
 # Initialize CSV output file
 fname = "performance " + str(datetime.datetime.utcnow()) + ".csv"
-fpath = os.path.join('results', fname)
+fpath = os.path.join(os.path.abspath('results'), fname)
 
-with open(fpath, 'a') as csvfile:
-    writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+with open(fpath, 'w') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(["iteration", "accuracy", "loss"])
 
 # Launch the graph
 with tf.Session() as sess:
     sess.run(init)
     step = 1
+
     # Keep training until reach max iterations
     while step * batch_size < training_iters:
         batch_xs, batch_ys = data.train.next_batch(batch_size)
+
         # Fit training using batch data
         sess.run(optimizer, feed_dict={x: batch_xs, y: batch_ys, keep_prob: dropout})
         if step % display_step == 0:
+
             # Calculate batch accuracy
             acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+
             # Calculate batch loss
             loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+
             # Output benchmarks to csv
             with open(fpath, 'a') as csvfile:
-                writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
                 writer.writerow([step*batch_size, "{:.5f}".format(acc), "{:.6f}".format(loss)])
+
             # Print to console
             print "Iter " + str(step*batch_size) + ", Minibatch Loss= " + "{:.6f}".format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc)
+
         step += 1
+
     print "Optimization Finished!"
+
     # Calculate accuracy for 256 data test images
     print "Testing Accuracy:", sess.run(accuracy, feed_dict={x: data.test.images[:256], y: data.test.labels[:256], keep_prob: 1.})
