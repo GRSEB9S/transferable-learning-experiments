@@ -3,5 +3,6 @@
 1_flickr_dognet/settings.config
 1_flickr_dognet/data
 2_transfer/data
+2_transfer/checkpoints/*
 2_transfer/results/*
 .DS_Store

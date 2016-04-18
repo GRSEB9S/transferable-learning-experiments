@@ -7,7 +7,7 @@ import datetime
 
 # Globals
 RESTORING_OLD_CHECKPOINT = False
-TRANSFERRING = True
+TRANSFERRING = False
 GENERATING_FOR_TRANSFER = False
 
 # IO Things
@@ -114,20 +114,20 @@ init = tf.initialize_all_variables()
 
 # Checkpoints and transplants
 checkpoint_saver = tf.train.Saver()
-transfer_saver = tf.train.Saver({
-    "wc1": wc1,
-    "wc2": wc2,
-    "wc3": wc3,
-    "wd1": wd1,
-    "wd2": wd2,
-    "wout": wout,
-    "bc1": bc1,
-    "bc2": bc2,
-    "bc3": bc3,
-    "bd1": bd1,
-    "bd2": bd2,
-    "bout": bout
-})
+# transfer_saver = tf.train.Saver({
+#     "wc1": wc1,
+#     "wc2": wc2,
+#     "wc3": wc3,
+#     "wd1": wd1,
+#     "wd2": wd2,
+#     "wout": wout,
+#     "bc1": bc1,
+#     "bc2": bc2,
+#     "bc3": bc3,
+#     "bd1": bd1,
+#     "bd2": bd2,
+#     "bout": bout
+# }) # TODO Can just use a list of variables. Also don't do this all the time...
 
 # Initialize CSV output file
 fname = "performance " + str(datetime.datetime.utcnow()) + ".csv"
@@ -177,10 +177,12 @@ with tf.Session() as sess:
             print "Iter " + str(step * batch_size) + ", Minibatch Loss= " + "{:.6f}".format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc)
 
             # Checkpointing
-            checkpoint_saver.save(sess, "/tmp/model.ckpt")
+            checkpoint_name = './checkpoints/' + str(datetime.datetime.now()).replace(' ','-').replace('.','')
+            checkpoint_saver.save(sess, checkpoint_name)
 
-            if GENERATING_FOR_TRANSFER:
-                transfer_saver.save(sess, "/tmp/transfer.ckpt")
+
+            # if GENERATING_FOR_TRANSFER: TODO
+            #     transfer_saver.save(sess, "path_to_stored_weights_with_informative_labels")
 
         step += 1
 
