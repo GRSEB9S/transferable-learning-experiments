@@ -10,11 +10,16 @@ POS_CLASS = 'flower'
 positive_dir = "./data/" + POS_CLASS
 negative_dir = "./data/not" + POS_CLASS
 
+
+def djanky_date():
+    return str(datetime.datetime.now()).split('.')[0][8:].replace(' ', '_').replace(':','-')
+
+
 # Parameters
 learning_rate = 0.001
 training_iters = 200000
 batch_size = 64
-display_step = 20
+display_step = 10
 save_step = 100
 
 # Network Parameters
@@ -34,11 +39,14 @@ keep_prob = tf.placeholder(tf.float32)  # dropout (keep probability)
 def conv2d(name, l_input, w, b):
     return tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(l_input, w, strides=[1, 1, 1, 1], padding='SAME'), b), name=name)
 
+
 def max_pool(name, l_input, k):
     return tf.nn.max_pool(l_input, ksize=[1, k, k, 1], strides=[1, k, k, 1], padding='SAME', name=name)
 
+
 def norm(name, l_input, lsize=4):
     return tf.nn.lrn(l_input, lsize, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name=name)
+
 
 def alex_net(_X, _dropout):
 
@@ -117,7 +125,7 @@ if not os.path.exists('./results/checkpoints'):
     os.makedirs('./results/checkpoints')
 
 # Initialize CSV output file
-fpath = "results/performance.csv"
+fpath = "results/" + POS_CLASS + "_performance_" + djanky_date() + ".csv"
 
 with open(fpath, 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',',
@@ -159,7 +167,7 @@ with tf.Session() as sess:
 
         if step % save_step == 0:
             # Checkpointing
-            checkpoint_name = os.path.join('./results/checkpoints/', 'model_' + str(step * batch_size) + '.ckpt')
+            checkpoint_name = os.path.join('./results/checkpoints/', POS_CLASS + '_' + djanky_date() + '_' + str(step * batch_size) + '.ckpt')
             checkpoint_saver.save(sess, checkpoint_name)
 
         step += 1
