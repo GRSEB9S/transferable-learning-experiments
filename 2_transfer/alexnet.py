@@ -7,8 +7,8 @@ import datetime
 
 # Globals
 RESTORING_OLD_CHECKPOINT = False
-TRANSPLANTING = False
-PREPARING_FOR_TRANSPLANT = True
+TRANSFERRING = True
+GENERATING_FOR_TRANSFER = False
 
 # IO Things
 POS_CLASS = 'dog'
@@ -40,14 +40,11 @@ keep_prob = tf.placeholder(tf.float32)  # dropout (keep probability)
 def conv2d(name, l_input, w, b):
     return tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(l_input, w, strides=[1, 1, 1, 1], padding='SAME'), b), name=name)
 
-
 def max_pool(name, l_input, k):
     return tf.nn.max_pool(l_input, ksize=[1, k, k, 1], strides=[1, k, k, 1], padding='SAME', name=name)
 
-
 def norm(name, l_input, lsize=4):
     return tf.nn.lrn(l_input, lsize, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name=name)
-
 
 def alex_net(_X, _dropout):
 
@@ -101,11 +98,6 @@ bd1 = tf.Variable(tf.random_normal([1024]), name="bd1")
 bd2 = tf.Variable(tf.random_normal([1024]), name="bd2")
 bout = tf.Variable(tf.random_normal([n_classes]), name="bout")
 
-if TRANSPLANTING:
-
-    # TODO
-    pass
-
 # Construct model
 pred = alex_net(x, keep_prob)
 
@@ -122,10 +114,20 @@ init = tf.initialize_all_variables()
 
 # Checkpoints and transplants
 checkpoint_saver = tf.train.Saver()
-# transplant_donation = tf.train.Saver({
-#     "weights": weights,
-#     "biases": biases
-# })
+transfer_saver = tf.train.Saver({
+    "wc1": wc1,
+    "wc2": wc2,
+    "wc3": wc3,
+    "wd1": wd1,
+    "wd2": wd2,
+    "wout": wout,
+    "bc1": bc1,
+    "bc2": bc2,
+    "bc3": bc3,
+    "bd1": bd1,
+    "bd2": bd2,
+    "bout": bout
+})
 
 # Initialize CSV output file
 fname = "performance " + str(datetime.datetime.utcnow()) + ".csv"
@@ -143,6 +145,9 @@ with tf.Session() as sess:
 
     if RESTORING_OLD_CHECKPOINT:
         checkpoint_saver.restore(sess, "/tmp/model.ckpt")
+
+    if TRANSFERRING:
+        transfer_saver.restore(sess, "/tmp/transfer.ckpt")
 
     # Keep training until reach max iterations
     while step * batch_size < training_iters:
@@ -174,8 +179,8 @@ with tf.Session() as sess:
             # Checkpointing
             checkpoint_saver.save(sess, "/tmp/model.ckpt")
 
-            # if PREPARING_FOR_TRANSPLANT:
-            #     transplant_donation.save(sess, "tmp/transplant.ckpt")
+            if GENERATING_FOR_TRANSFER:
+                transfer_saver.save(sess, "/tmp/transfer.ckpt")
 
         step += 1
 
