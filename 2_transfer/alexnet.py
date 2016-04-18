@@ -12,7 +12,7 @@ negative_dir = "./data/not" + POS_CLASS
 
 
 def djanky_date():
-    return str(datetime.datetime.now()).split('.')[0][8:].replace(' ', '_').replace(':','-')
+    return str(datetime.datetime.now()).split('.')[0][8:].replace(' ', '_').replace(':', '-')
 
 
 # Parameters
@@ -36,6 +36,8 @@ y = tf.placeholder(tf.float32, [None, n_classes])
 keep_prob = tf.placeholder(tf.float32)  # dropout (keep probability)
 
 # Create AlexNet model
+
+
 def conv2d(name, l_input, w, b):
     return tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(l_input, w, strides=[1, 1, 1, 1], padding='SAME'), b), name=name)
 
@@ -116,6 +118,20 @@ init = tf.initialize_all_variables()
 
 # Checkpoints and transplants
 checkpoint_saver = tf.train.Saver()
+transplant_saver = tf.train.Saver([
+    wc1,
+    wc2,
+    wc3,
+    wd1,
+    wd2,
+    wout,
+    bc1,
+    bc2,
+    bc3,
+    bd1,
+    bd2,
+    bout
+])
 
 # create outputs
 if not os.path.exists('./results'):
@@ -167,12 +183,19 @@ with tf.Session() as sess:
 
         if step % save_step == 0:
             # Checkpointing
-            checkpoint_name = os.path.join('./results/checkpoints/', POS_CLASS + '_' + djanky_date() + '_' + str(step * batch_size) + '.ckpt')
+            checkpoint_name = os.path.join(
+                './results/checkpoints/', POS_CLASS + '_' + djanky_date() + '_' + str(step * batch_size) + '.ckpt')
             checkpoint_saver.save(sess, checkpoint_name)
 
         step += 1
 
     print "Optimization Finished!"
+
+    try:
+        checkpoint_name = os.path.join('./results/checkpoints/', POS_CLASS + '_' + djanky_date() + '_weights.ckpt')
+        transplant_saver.save(sess, checkpoint_name)
+    except:
+        pass
 
     # Calculate accuracy for 256 data test images
     print "Testing Accuracy:", sess.run(accuracy, feed_dict={x: data.test.images[:256], y: data.test.labels[:256], keep_prob: 1.})
