@@ -30,7 +30,8 @@ def get_images(tags, total):
             to_return.append(url)
     return to_return
 
-for tag, filetag, filenum in [("eagle", "eagle", 100), ("-eagle", "noteagle", 200)]:
+for tag, filetag, filenum in [("car", "car", 500), ("-car", "notcar", 1000)]:
+
     # create dir
     cur_output_dir = os.path.join(output_file_dir, filetag)
     if not os.path.exists(cur_output_dir):

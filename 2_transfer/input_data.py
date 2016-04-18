@@ -5,6 +5,7 @@ import urllib
 import numpy as np
 import scipy.misc
 import glob
+import math
 
 
 def extract_images(positive_dir, negative_dir):
@@ -97,8 +98,35 @@ def read_data_sets(positive_dir, negative_dir):
         pass
     data_sets = DataSets()
 
+    # get data
     images, labels = extract_images(positive_dir, negative_dir)
 
-    data_sets.train = DataSet(images, labels)
-    data_sets.test = DataSet(images, labels)
+    # shuffle data
+    total_images = len(images)
+
+    perm = np.arange(total_images)
+    np.random.shuffle(perm)
+    images = images[perm]
+    labels = labels[perm]
+
+    # create the split
+    train_split = 0.6
+    training_images = int(math.ceil(total_images * train_split))
+
+    # create sets
+    data_sets.train = DataSet(images[:training_images], labels[:training_images])
+    data_sets.test = DataSet(images[training_images:], labels[training_images:])
+
     return data_sets
+
+def show_a_few(dataset):
+    for i in xrange(5):
+        print(str(dataset._labels[i]))
+        import matplotlib.pyplot as plt
+        plt.imshow(dataset._images[i].reshape(40, 40))
+        plt.show()
+
+if __name__ == "__main__":
+    a = read_data_sets('./data/car', './data/notcar')
+    show_a_few(a.train)
+    show_a_few(a.test)
