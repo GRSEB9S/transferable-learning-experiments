@@ -4,6 +4,11 @@ import csv
 import os.path
 import datetime
 
+
+# Globals
+RESTORING_OLD_CHECKPOINT = false
+TRANSPLANTING = false
+
 # IO Things
 POS_CLASS = 'dog'
 positive_dir = "./data/" + POS_CLASS
@@ -70,7 +75,7 @@ def alex_net(_X, _weights, _biases, _dropout):
     out = tf.matmul(dense2, _weights['out']) + _biases['out']
     return out
 
-# Store layers weight & bias
+
 weights = {
     'wc1': tf.Variable(tf.random_normal([3, 3, 1, 64])),
     'wc2': tf.Variable(tf.random_normal([3, 3, 64, 128])),
@@ -88,6 +93,11 @@ biases = {
     'bd2': tf.Variable(tf.random_normal([1024])),
     'out': tf.Variable(tf.random_normal([n_classes]))
 }
+
+if TRANSPLANTING:
+
+    # TODO 
+    pass
 
 # # Create a variable with a random value.
 # weights = tf.Variable(tf.random_normal([784, 200], stddev=0.35),
@@ -132,6 +142,9 @@ with tf.Session() as sess:
     sess.run(init)
     step = 1
 
+    if RESTORING_OLD_CHECKPOINT:
+        checkpoint_saver.restore(sess, "/tmp/model.ckpt")
+
     # Keep training until reach max iterations
     while step * batch_size < training_iters:
         batch_xs, batch_ys = data.train.next_batch(batch_size)
@@ -155,7 +168,7 @@ with tf.Session() as sess:
             print "Iter " + str(step*batch_size) + ", Minibatch Loss= " + "{:.6f}".format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc)
 
             # Checkpointing
-            save_path = saver.save(sess, "/tmp/model.ckpt")
+            save_path = checkpoint_saver.save(sess, "/tmp/model.ckpt")
             print("Model saved in file: %s" % save_path)
 
         step += 1
