@@ -6,7 +6,7 @@ import datetime
 
 
 # IO Things
-POS_CLASS = 'flower'
+POS_CLASS = 'dog'
 positive_dir = "./data/" + POS_CLASS
 negative_dir = "./data/not" + POS_CLASS
 
