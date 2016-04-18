@@ -4,7 +4,10 @@ import csv
 import os.path
 import datetime
 
-data = input_data.read_data_sets()
+# IO Things
+POS_CLASS = 'dog'
+positive_dir = "./data/" + POS_CLASS
+negative_dir = "./data/not" + POS_CLASS
 
 # Parameters
 learning_rate = 0.001
@@ -16,6 +19,9 @@ display_step = 20
 n_input = 40 * 40 # data input (img shape: 28*28)
 n_classes = 2 # total classes (0-9 digits)
 dropout = 0.8 # Dropout, probability to keep units
+
+# Training data # TODO Partition test / training
+data = input_data.read_data_sets(positive_dir, negative_dir)
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input])
@@ -83,6 +89,14 @@ biases = {
     'out': tf.Variable(tf.random_normal([n_classes]))
 }
 
+# # Create a variable with a random value.
+# weights = tf.Variable(tf.random_normal([784, 200], stddev=0.35),
+#                       name="weights")
+# # Create another variable with the same value as 'weights'.
+# w2 = tf.Variable(weights.initialized_value(), name="w2")
+# # Create another variable with twice the value of 'weights'
+# w_twice = tf.Variable(weights.initialized_value() * 2.0, name="w_twice")
+
 # Construct model
 pred = alex_net(x, weights, biases, keep_prob)
 
@@ -96,6 +110,14 @@ accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
 # Initializing the variables
 init = tf.initialize_all_variables()
+
+# User for saving and restoring models
+checkpoint_saver = tf.train.Saver()
+
+# trasfer_saver = tf.train.Saver({
+#     "weights": weights,
+#     "biases": biases
+# }) TODO Save with descriptive names
 
 # Initialize CSV output file
 fname = "performance " + str(datetime.datetime.utcnow()) + ".csv"
@@ -131,6 +153,10 @@ with tf.Session() as sess:
 
             # Print to console
             print "Iter " + str(step*batch_size) + ", Minibatch Loss= " + "{:.6f}".format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc)
+
+            # Checkpointing
+            save_path = saver.save(sess, "/tmp/model.ckpt")
+            print("Model saved in file: %s" % save_path)
 
         step += 1
 

@@ -6,16 +6,13 @@ import numpy as np
 import scipy.misc
 import glob
 
-POSITIVE_DIR = "./data/dog"
-NEGATIVE_DIR = "./data/notdog"
 
-
-def extract_images():
+def extract_images(positive_dir, negative_dir):
     # iterate through all files
     data = []
     labels = []
 
-    for directory, classification in [(POSITIVE_DIR, np.array([1, 0])), (NEGATIVE_DIR, np.array([0, 1]))]:
+    for directory, classification in [(positive_dir, np.array([1, 0])), (negative_dir, np.array([0, 1]))]:
         images = glob.glob(os.path.join(directory, "*.jpg"))
 
         for image in images:
@@ -25,6 +22,7 @@ def extract_images():
     data = np.array(data)
     data = data.reshape(data.shape[0], data.shape[1], data.shape[2], 1)
     return data, np.array(labels)
+
 
 class DataSet(object):
   def __init__(self, images, labels, fake_data=False):
@@ -43,21 +41,26 @@ class DataSet(object):
     self._epochs_completed = 0
     self._index_in_epoch = 0
 
+
   @property
   def images(self):
     return self._images
+
 
   @property
   def labels(self):
     return self._labels
 
+
   @property
   def num_examples(self):
     return self._num_examples
 
+
   @property
   def epochs_completed(self):
     return self._epochs_completed
+
 
   def next_batch(self, batch_size, fake_data=False):
     """Return the next `batch_size` examples from this data set."""
@@ -81,12 +84,12 @@ class DataSet(object):
     return self._images[start:end], self._labels[start:end]
 
 
-def read_data_sets():
+def read_data_sets(positive_dir, negative_dir):
     class DataSets(object):
         pass
     data_sets = DataSets()
 
-    images, labels = extract_images()
+    images, labels = extract_images(positive_dir, negative_dir)
 
     data_sets.train = DataSet(images, labels)
     data_sets.test = DataSet(images, labels)
