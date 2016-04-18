@@ -5,13 +5,8 @@ import os.path
 import datetime
 
 
-# Globals
-RESTORING_OLD_CHECKPOINT = False
-TRANSFERRING = False
-GENERATING_FOR_TRANSFER = False
-
 # IO Things
-POS_CLASS = 'dog'
+POS_CLASS = 'flower'
 positive_dir = "./data/" + POS_CLASS
 negative_dir = "./data/not" + POS_CLASS
 
@@ -20,6 +15,7 @@ learning_rate = 0.001
 training_iters = 200000
 batch_size = 64
 display_step = 20
+save_step = 100
 
 # Network Parameters
 n_input = 40 * 40  # data input (img shape: 28*28)
@@ -112,24 +108,16 @@ init = tf.initialize_all_variables()
 
 # Checkpoints and transplants
 checkpoint_saver = tf.train.Saver()
-# transfer_saver = tf.train.Saver({
-#     "wc1": wc1,
-#     "wc2": wc2,
-#     "wc3": wc3,
-#     "wd1": wd1,
-#     "wd2": wd2,
-#     "wout": wout,
-#     "bc1": bc1,
-#     "bc2": bc2,
-#     "bc3": bc3,
-#     "bd1": bd1,
-#     "bd2": bd2,
-#     "bout": bout
-# }) # TODO Can just use a list of variables. Also don't do this all the time...
+
+# create outputs
+if not os.path.exists('./results'):
+    os.makedirs('./results')
+
+if not os.path.exists('./results/checkpoints'):
+    os.makedirs('./results/checkpoints')
 
 # Initialize CSV output file
-fname = "performance " + str(datetime.datetime.utcnow()) + ".csv"
-fpath = os.path.join(os.path.abspath('results'), fname)
+fpath = "results/performance.csv"
 
 with open(fpath, 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',',
@@ -139,14 +127,8 @@ with open(fpath, 'w') as csvfile:
 # Launch the graph
 with tf.Session() as sess:
     sess.run(init)
+
     step = 1
-
-    if RESTORING_OLD_CHECKPOINT:
-        checkpoint_saver.restore(sess, "/tmp/model.ckpt")
-
-    if TRANSFERRING:
-        transfer_saver.restore(sess, "/tmp/transfer.ckpt")
-
     # Keep training until reach max iterations
     while step * batch_size < training_iters:
         batch_xs, batch_ys = data.train.next_batch(batch_size)
@@ -154,6 +136,7 @@ with tf.Session() as sess:
         # Fit training using batch data
         sess.run(optimizer, feed_dict={
                  x: batch_xs, y: batch_ys, keep_prob: dropout})
+
         if step % display_step == 0:
 
             # Calculate batch accuracy
@@ -174,13 +157,10 @@ with tf.Session() as sess:
             # Print to console
             print "Iter " + str(step * batch_size) + ", Minibatch Loss= " + "{:.6f}".format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc)
 
+        if step % save_step == 0:
             # Checkpointing
-            checkpoint_name = './checkpoints/' + str(datetime.datetime.now()).replace(' ','-').replace('.','')
+            checkpoint_name = os.path.join('./results/checkpoints/', 'model_' + str(step * batch_size) + '.ckpt')
             checkpoint_saver.save(sess, checkpoint_name)
-
-
-            # if GENERATING_FOR_TRANSFER: TODO
-            #     transfer_saver.save(sess, "path_to_stored_weights_with_informative_labels")
 
         step += 1
 
