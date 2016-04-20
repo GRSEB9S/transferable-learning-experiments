@@ -126,7 +126,8 @@ def show_a_few(dataset):
         plt.imshow(dataset._images[i].reshape(40, 40))
         plt.show()
 
-if __name__ == "__main__":
-    a = read_data_sets('./data/car', './data/notcar')
-    show_a_few(a.train)
-    show_a_few(a.test)
+#
+# if __name__ == "__main__":
+#     a = read_data_sets('./data/car', './data/notcar')
+#     show_a_few(a.train)
+#     show_a_few(a.test)
