@@ -1,7 +1,9 @@
 .vscode
 *.pyc
-1_flickr_dognet/settings.config
+settings.config
 1_flickr_dognet/data
 2_transfer/data
 2_transfer/results/
+3_transfer_redux/data
+3_transfer_redux/results
 .DS_Store

@@ -1,3 +1,4 @@
+import argparse
 import input_data
 import tensorflow as tf
 import csv
@@ -7,18 +8,19 @@ import datetime
 
 # IO Things
 POS_CLASS = 'eye'
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("pos_class", help="class to train")
+    args = parser.parse_args()
+    POS_CLASS = args.pos_class
+
 positive_dir = "./data/" + POS_CLASS
 negative_dir = "./data/not" + POS_CLASS
 
-
-def djanky_date():
-    return str(datetime.datetime.now()).split('.')[0][8:].replace(' ', '_').replace(':', '-')
-
-
 TRANSPLANTING = True
-TRANSPLANT_CLASS = ''
-TRANSPLANT_PATH = './results/checkpoints/[*]_weights.ckpt'  # TODO UPDATE EACH TIME
-
+TRANSPLANT_CLASS = 'wallet'
+TRANSPLANT_PATH = './results/checkpoints/wallet_20_01-32-43_weights.ckpt'  # TODO UPDATE EACH TIME
 
 # Parameters
 learning_rate = 0.0001
@@ -140,7 +142,10 @@ transplant_saver = tf.train.Saver([
     bout,
 ])
 
-# create outputs
+# Create outputs
+def djanky_date():
+    return str(datetime.datetime.now()).split('.')[0][8:].replace(' ', '_').replace(':', '-')
+
 if not os.path.exists('./results'):
     os.makedirs('./results')
 

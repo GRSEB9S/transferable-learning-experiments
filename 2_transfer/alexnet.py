@@ -6,7 +6,7 @@ import datetime
 
 
 # IO Things
-POS_CLASS = 'flower'
+POS_CLASS = 'dog'
 positive_dir = "./data/" + POS_CLASS
 negative_dir = "./data/not" + POS_CLASS
 
@@ -15,9 +15,9 @@ def djanky_date():
     return str(datetime.datetime.now()).split('.')[0][8:].replace(' ', '_').replace(':', '-')
 
 
-DEBUGGING = True
+DEBUGGING = False
 TRANSPLANTING = True
-TRANSPLANT_PATH = './results/checkpoints/dog_18_02-50-14_weights.ckpt'  # TODO Change manually if transplanting
+TRANSPLANT_PATH = './results/checkpoints/flower_18_02-18-20_weights.ckpt'  # TODO Change manually if transplanting
 
 
 # Parameters
