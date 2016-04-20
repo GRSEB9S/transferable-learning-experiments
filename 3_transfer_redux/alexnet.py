@@ -15,6 +15,11 @@ def djanky_date():
     return str(datetime.datetime.now()).split('.')[0][8:].replace(' ', '_').replace(':', '-')
 
 
+TRANSPLANTING = True
+TRANSPLANT_CLASS = ''
+TRANSPLANT_PATH = './results/checkpoints/[*]_weights.ckpt'  # TODO UPDATE EACH TIME
+
+
 # Parameters
 learning_rate = 0.0001
 training_iters = 10000
@@ -22,22 +27,24 @@ batch_size = 50
 display_step = 10
 save_step = 100
 
+
 # Network Parameters
 n_input = 40 * 40  # data input (img shape: 40x40)
 n_classes = 2  # total classes (0-9 digits)
 dropout = 0.8  # Dropout, probability to keep units
 
+
 # Training data
 data = input_data.read_data_sets(positive_dir, negative_dir)
+
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input])
 y = tf.placeholder(tf.float32, [None, n_classes])
 keep_prob = tf.placeholder(tf.float32)  # dropout (keep probability)
 
+
 # Create AlexNet model
-
-
 def conv2d(name, l_input, w, b):
     return tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(l_input, w, strides=[1, 1, 1, 1], padding='SAME'), b), name=name)
 
@@ -140,8 +147,11 @@ if not os.path.exists('./results'):
 if not os.path.exists('./results/checkpoints'):
     os.makedirs('./results/checkpoints')
 
-# Initialize CSV output file
-fpath = "results/" + POS_CLASS + "_performance_" + djanky_date() + ".csv"
+# CSV output file name and init
+if TRANSPLANTING:
+    fpath = "results/" + TRANSPLANT_CLASS + POS_CLASS + "_performance_" + djanky_date() + ".csv"
+else:
+    fpath = "results/" + POS_CLASS + "_performance_" + djanky_date() + ".csv"
 
 with open(fpath, 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',',
@@ -150,9 +160,14 @@ with open(fpath, 'w') as csvfile:
 
 # Launch the graph
 with tf.Session() as sess:
+
     sess.run(init)
 
     step = 1
+
+    # TODO Before or after benchmarking?
+    if TRANSPLANTING:
+        transplant_saver.restore(sess, TRANSPLANT_PATH)
 
     # initial
     test_acc = sess.run(accuracy, feed_dict={
