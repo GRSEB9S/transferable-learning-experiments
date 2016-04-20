@@ -6,7 +6,7 @@ import datetime
 
 
 # IO Things
-POS_CLASS = 'car'
+POS_CLASS = 'eye'
 positive_dir = "./data/" + POS_CLASS
 negative_dir = "./data/not" + POS_CLASS
 
@@ -17,9 +17,9 @@ def djanky_date():
 
 # Parameters
 learning_rate = 0.0001
-training_iters = 20000
-batch_size = 500
-display_step = 1
+training_iters = 10000
+batch_size = 50
+display_step = 10
 save_step = 100
 
 # Network Parameters
@@ -106,7 +106,7 @@ bout = tf.Variable(tf.random_normal([n_classes]), name="bout")
 pred = alex_net(x, keep_prob)
 
 # Define loss and optimizer
-cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(pred, y))
+cost = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(pred, tf.argmax(y, 1)))
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
 # Evaluate model
@@ -146,13 +146,35 @@ fpath = "results/" + POS_CLASS + "_performance_" + djanky_date() + ".csv"
 with open(fpath, 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',',
                         quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(["iteration", "accuracy", "loss"])
+    writer.writerow(["iteration", "train_accuracy", "train_loss", "test_accuracy", "test_loss"])
 
 # Launch the graph
 with tf.Session() as sess:
     sess.run(init)
 
     step = 1
+
+    # initial
+    test_acc = sess.run(accuracy, feed_dict={
+                   x: data.test.images, y: data.test.labels, keep_prob: 1.})
+    test_loss = sess.run(cost, feed_dict={
+                    x: data.test.images, y: data.test.labels, keep_prob: 1.})
+
+    train_acc = sess.run(accuracy, feed_dict={
+                   x: data.train.images, y: data.train.labels, keep_prob: 1.})
+    train_loss = sess.run(cost, feed_dict={
+                    x: data.train.images, y: data.train.labels, keep_prob: 1.})
+
+    # Output benchmarks to csv
+    with open(fpath, 'a') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(
+            [0, "{:.5f}".format(train_acc), "{:.6f}".format(train_loss), "{:.5f}".format(test_acc), "{:.6f}".format(test_loss)])
+
+    # Print to console
+    print "Iter 0 - Test (Loss: " + "{:.6f}".format(test_loss) + ", Acc: " + "{:.5f}".format(test_acc) + ")" + "; Train (Loss: " + "{:.6f}".format(train_loss) + ", Acc: " + "{:.5f}".format(train_acc) + ")"
+
     # Keep training until reach max iterations
     while step * batch_size < training_iters:
         batch_xs, batch_ys = data.train.next_batch(batch_size)
@@ -162,24 +184,24 @@ with tf.Session() as sess:
                  x: batch_xs, y: batch_ys, keep_prob: dropout})
 
         if step % display_step == 0:
+            test_acc = sess.run(accuracy, feed_dict={
+                           x: data.test.images, y: data.test.labels, keep_prob: 1.})
+            test_loss = sess.run(cost, feed_dict={
+                            x: data.test.images, y: data.test.labels, keep_prob: 1.})
 
-            # Calculate batch accuracy
-            acc = sess.run(accuracy, feed_dict={
-                           x: batch_xs, y: batch_ys, keep_prob: 1.})
-
-            # Calculate batch loss
-            loss = sess.run(cost, feed_dict={
-                            x: batch_xs, y: batch_ys, keep_prob: 1.})
+            train_acc = sess.run(accuracy, feed_dict={
+                           x: data.train.images, y: data.train.labels, keep_prob: 1.})
+            train_loss = sess.run(cost, feed_dict={
+                            x: data.train.images, y: data.train.labels, keep_prob: 1.})
 
             # Output benchmarks to csv
             with open(fpath, 'a') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',',
                                     quotechar='|', quoting=csv.QUOTE_MINIMAL)
                 writer.writerow(
-                    [step * batch_size, "{:.5f}".format(acc), "{:.6f}".format(loss)])
-
+                    [step * batch_size, "{:.5f}".format(train_acc), "{:.6f}".format(train_loss), "{:.5f}".format(test_acc), "{:.6f}".format(test_loss)])
             # Print to console
-            print "Iter " + str(step * batch_size) + ", Minibatch Loss= " + "{:.6f}".format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc)
+            print "Iter " + str(step * batch_size) + " - Test (Loss: " + "{:.6f}".format(test_loss) + ", Acc: " + "{:.5f}".format(test_acc) + ")" + "; Train (Loss: " + "{:.6f}".format(train_loss) + ", Acc: " + "{:.5f}".format(train_acc) + ")"
 
         if step % save_step == 0:
             # Checkpointing
