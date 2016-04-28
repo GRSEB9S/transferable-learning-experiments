@@ -6,21 +6,30 @@ import os.path
 import datetime
 
 
+# TRANSPLANTING
+# TRANSPLANT_PATH
+
 # IO Things
 POS_CLASS = 'eye'
 
+# ensure unique datetime filenames
+def djanky_date():
+    return str(datetime.datetime.now()).split('.')[0][8:].replace(' ', '_').replace(':', '-')
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("pos_class", help="class to train")
+    parser.add_argument("pos_class", type=str, help="class to train")
+    parser.add_argument('-t', '--transplanting', action='store_true', default=False)
+    parser.add_argument('-p', '--transplanting_path', type=str)
     args = parser.parse_args()
+
     POS_CLASS = args.pos_class
+    TRANSPLANTING = args.transplanting
+    TRANSPLANT_CLASS = 'wallet'
+    TRANSPLANT_PATH = './results/checkpoints/' + TRANSPLANT_CLASS + '_' + djanky_date() + '.ckpt'
 
 positive_dir = "./data/" + POS_CLASS
 negative_dir = "./data/not" + POS_CLASS
-
-TRANSPLANTING = True
-TRANSPLANT_CLASS = 'wallet'
-TRANSPLANT_PATH = './results/checkpoints/wallet_20_01-32-43_weights.ckpt'  # TODO UPDATE EACH TIME
 
 # Parameters
 learning_rate = 0.0001
@@ -143,9 +152,6 @@ transplant_saver = tf.train.Saver([
 ])
 
 # Create outputs
-def djanky_date():
-    return str(datetime.datetime.now()).split('.')[0][8:].replace(' ', '_').replace(':', '-')
-
 if not os.path.exists('./results'):
     os.makedirs('./results')
 
@@ -170,7 +176,6 @@ with tf.Session() as sess:
 
     step = 1
 
-    # TODO Before or after benchmarking?
     if TRANSPLANTING:
         transplant_saver.restore(sess, TRANSPLANT_PATH)
 
