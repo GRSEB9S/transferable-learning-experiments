@@ -9,6 +9,7 @@ import math
 
 
 def extract_images(positive_dir, negative_dir):
+    
     # iterate through all files
     data = []
     labels = []
