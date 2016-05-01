@@ -3,30 +3,27 @@ import input_data
 import tensorflow as tf
 import csv
 import os.path
-import datetime
-
-
-# TRANSPLANTING
-# TRANSPLANT_PATH
-
-# IO Things
-POS_CLASS = 'eye'
-
-# ensure unique datetime filenames
-def djanky_date():
-    return str(datetime.datetime.now()).split('.')[0][8:].replace(' ', '_').replace(':', '-')
+import utils
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("pos_class", type=str, help="class to train")
     parser.add_argument('-t', '--transplanting', action='store_true', default=False)
+    parser.add_argument('-c', '--transplanting_class', type=str)
     parser.add_argument('-p', '--transplanting_path', type=str)
+    parser.add_argument('-l', '--lesion_indicator', type=str)
     args = parser.parse_args()
 
     POS_CLASS = args.pos_class
     TRANSPLANTING = args.transplanting
-    TRANSPLANT_CLASS = 'wallet'
-    TRANSPLANT_PATH = './results/checkpoints/' + TRANSPLANT_CLASS + '_' + djanky_date() + '.ckpt'
+    TRANSPLANT_CLASS = args.transplanting_class
+    LESION_INDICATOR = args.lesion_indicator
+
+    #
+    # This takes the form ./results/checkpoints/[class_of_weights_to_import][model_date].ckpt
+    #
+    if args.transplanting_path:
+        TRANSPLANT_PATH = './results/checkpoints/' + args.transplanting_path
 
 positive_dir = "./data/" + POS_CLASS
 negative_dir = "./data/not" + POS_CLASS
@@ -38,22 +35,18 @@ batch_size = 50
 display_step = 10
 save_step = 100
 
-
 # Network Parameters
 n_input = 40 * 40  # data input (img shape: 40x40)
 n_classes = 2  # total classes (0-9 digits)
 dropout = 0.8  # Dropout, probability to keep units
 
-
 # Training data
-data = input_data.read_data_sets(positive_dir, negative_dir)
-
+# data = input_data.read_data_sets(positive_dir, negative_dir) TODO
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input])
 y = tf.placeholder(tf.float32, [None, n_classes])
 keep_prob = tf.placeholder(tf.float32)  # dropout (keep probability)
-
 
 # Create AlexNet model
 def conv2d(name, l_input, w, b):
@@ -103,7 +96,6 @@ def alex_net(_X, _dropout):
     out = tf.matmul(dense2, wout) + bout
     return out
 
-
 # Weights
 wc1 = tf.Variable(tf.random_normal([3, 3, 1, 64]), name="wc1")
 wc2 = tf.Variable(tf.random_normal([3, 3, 64, 128]), name="wc2")
@@ -147,14 +139,26 @@ var_lookup = {
     "bc3": bc3,
     "bd1": bd1,
     "bd2": bd2,
-    "bouy": bout,
+    "bout": bout
 }
 
-# The lessioner
-#
-# To run call sess.run(lesion('bc2')), which will reset it to random values
-def lesion(var):
-    return tf.assign(var_lookup[var], tf.random_normal(tf.shape(var_lookup[var])))
+lesion_lookup = {
+    1: (wc1, bc1),
+    2: (wc2, bc2),
+    3: (wc3, bc3),
+    4: (wd1, bd1),
+    5: (wd2, bd2),
+    6: (wout, bout)
+}
+
+
+def lesion(lesion_i):
+
+    """ Randomizes the weights and biases for a given layer """
+    tf.assign(lesion_lookup[lesion_i][0], tf.random_normal(tf.shape(lesion_lookup[lesion_i][0])))
+    tf.assign(lesion_lookup[lesion_i][1], tf.random_normal(tf.shape(lesion_lookup[lesion_i][1])))
+
+
 
 # Checkpoints and transplants
 checkpoint_saver = tf.train.Saver()
@@ -169,9 +173,9 @@ if not os.path.exists('./results/checkpoints'):
 
 # CSV output file name and init
 if TRANSPLANTING:
-    fpath = "results/" + TRANSPLANT_CLASS + POS_CLASS + "_performance_" + djanky_date() + ".csv"
+    fpath = "results/" + TRANSPLANT_CLASS + POS_CLASS + "_performance_" + utils.date_stamp() + ".csv"
 else:
-    fpath = "results/" + POS_CLASS + "_performance_" + djanky_date() + ".csv"
+    fpath = "results/" + POS_CLASS + "_performance_" + utils.date_stamp() + ".csv"
 
 with open(fpath, 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',',
@@ -182,12 +186,9 @@ with open(fpath, 'w') as csvfile:
 with tf.Session() as sess:
 
     sess.run(init)
-
-    import pdb; pdb.set_trace()
-
     step = 1
 
-    if TRANSPLANTING:
+    if TRANSPLANTING: # TODO lesioning
         transplant_saver.restore(sess, TRANSPLANT_PATH)
 
     # initial
@@ -242,18 +243,15 @@ with tf.Session() as sess:
         if step % save_step == 0:
             # Checkpointing
             checkpoint_name = os.path.join(
-                './results/checkpoints/', POS_CLASS + '_' + djanky_date() + '_' + str(step * batch_size) + '.ckpt')
+                './results/checkpoints/', POS_CLASS + '_' + utils.date_stamp() + '_' + str(step * batch_size) + '.ckpt')
             checkpoint_saver.save(sess, checkpoint_name)
 
         step += 1
 
-    print "Optimization Finished!"
+    print "Training Finished!"
 
-    try:
-        checkpoint_name = os.path.join('./results/checkpoints/', POS_CLASS + '_' + djanky_date() + '_weights.ckpt')
-        transplant_saver.save(sess, checkpoint_name)
-    except:
-        pass
+    checkpoint_name = os.path.join('./results/checkpoints/', POS_CLASS + '_' + utils.date_stamp() + '_weights.ckpt')
+    transplant_saver.save(sess, checkpoint_name)
 
     # Calculate accuracy for 256 data test images
     print "Testing Accuracy:", sess.run(accuracy, feed_dict={x: data.test.images, y: data.test.labels, keep_prob: 1.})
