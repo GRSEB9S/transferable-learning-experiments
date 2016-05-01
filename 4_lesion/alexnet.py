@@ -10,8 +10,8 @@ if __name__ == "__main__":
     parser.add_argument("pos_class", type=str, help="class to train")
     parser.add_argument('-t', '--transplanting', action='store_true', default=False)
     parser.add_argument('-c', '--transplanting_class', type=str)
-    parser.add_argument('-p', '--transplanting_path', type=str)
-    parser.add_argument('-l', '--lesion_indicator', type=str)
+    parser.add_argument('-p', '--transplanting_fname', type=str)
+    parser.add_argument('-l', '--lesion_indicator', type=str, default='111111')
     args = parser.parse_args()
 
     POS_CLASS = args.pos_class
@@ -20,10 +20,10 @@ if __name__ == "__main__":
     LESION_INDICATOR = args.lesion_indicator
 
     #
-    # This takes the form ./results/checkpoints/[class_of_weights_to_import][model_date].ckpt
+    # transplanting_fname takes the form [class_of_weights_to_import][model_date].ckpt
     #
     if args.transplanting_path:
-        TRANSPLANT_PATH = './results/checkpoints/' + args.transplanting_path
+        TRANSPLANT_PATH = './results/checkpoints/' + args.transplanting_fname
 
 positive_dir = "./data/" + POS_CLASS
 negative_dir = "./data/not" + POS_CLASS
@@ -143,21 +143,19 @@ var_lookup = {
 }
 
 lesion_lookup = {
-    1: (wc1, bc1),
-    2: (wc2, bc2),
-    3: (wc3, bc3),
-    4: (wd1, bd1),
-    5: (wd2, bd2),
-    6: (wout, bout)
+    0: (wc1, bc1),
+    1: (wc2, bc2),
+    2: (wc3, bc3),
+    3: (wd1, bd1),
+    4: (wd2, bd2),
+    5: (wout, bout)
 }
-
 
 def lesion(lesion_i):
 
     """ Randomizes the weights and biases for a given layer """
     tf.assign(lesion_lookup[lesion_i][0], tf.random_normal(tf.shape(lesion_lookup[lesion_i][0])))
     tf.assign(lesion_lookup[lesion_i][1], tf.random_normal(tf.shape(lesion_lookup[lesion_i][1])))
-
 
 
 # Checkpoints and transplants
@@ -171,8 +169,7 @@ if not os.path.exists('./results'):
 if not os.path.exists('./results/checkpoints'):
     os.makedirs('./results/checkpoints')
 
-# CSV output file name and init
-if TRANSPLANTING:
+if TRANSPLANTING:  # TODO
     fpath = "results/" + TRANSPLANT_CLASS + POS_CLASS + "_performance_" + utils.date_stamp() + ".csv"
 else:
     fpath = "results/" + POS_CLASS + "_performance_" + utils.date_stamp() + ".csv"
@@ -182,14 +179,18 @@ with open(fpath, 'w') as csvfile:
                         quotechar='|', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(["iteration", "train_accuracy", "train_loss", "test_accuracy", "test_loss"])
 
-# Launch the graph
 with tf.Session() as sess:
 
     sess.run(init)
     step = 1
 
-    if TRANSPLANTING: # TODO lesioning
+    if TRANSPLANTING:
         transplant_saver.restore(sess, TRANSPLANT_PATH)
+
+        for lesion_i in range(6):
+            if not int(LESION_INDICATOR[lesion_i]):  # 0 indicates that layer should be randomized
+                lesion(lesion_i)
+
 
     # initial
     test_acc = sess.run(accuracy, feed_dict={
