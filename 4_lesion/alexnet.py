@@ -187,12 +187,12 @@ with tf.Session() as sess:
     if TRANSPLANTING:
         transplant_saver.restore(sess, TRANSPLANT_PATH)
 
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
         for lesion_i in range(6):
             if not int(LESION_INDICATOR[lesion_i]):  # 0 indicates that layer should be randomized
-                tf.assign(lesion_lookup[lesion_i][0], tf.random_normal(tf.shape(lesion_lookup[lesion_i][0])))
-                tf.assign(lesion_lookup[lesion_i][1], tf.random_normal(tf.shape(lesion_lookup[lesion_i][1])))
+                sess.run(tf.assign(lesion_lookup[lesion_i][0], tf.random_normal(tf.shape(lesion_lookup[lesion_i][0]))))
+                sess.run(tf.assign(lesion_lookup[lesion_i][1], tf.random_normal(tf.shape(lesion_lookup[lesion_i][1]))))
 
 
     # initial
