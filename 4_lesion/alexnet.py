@@ -22,7 +22,7 @@ if __name__ == "__main__":
     #
     # transplanting_fname takes the form [class_of_weights_to_import][model_date].ckpt
     #
-    if args.transplanting_path:
+    if args.transplanting_fname:
         TRANSPLANT_PATH = './results/checkpoints/' + args.transplanting_fname
 
 positive_dir = "./data/" + POS_CLASS
@@ -41,7 +41,7 @@ n_classes = 2  # total classes (0-9 digits)
 dropout = 0.8  # Dropout, probability to keep units
 
 # Training data
-# data = input_data.read_data_sets(positive_dir, negative_dir) TODO
+data = input_data.read_data_sets(positive_dir, negative_dir)
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input])
