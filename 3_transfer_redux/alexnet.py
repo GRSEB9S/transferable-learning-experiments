@@ -179,6 +179,12 @@ with open(fpath, 'w') as csvfile:
                      "BD1_dist",
                      "BD2_dist",
                      "BOUT_dist",
+                     "WC1_dist",
+                     "WC2_dist",
+                     "WC3_dist",
+                     "WD1_dist",
+                     "WD2_dist",
+                     "WOUT_dist",
                      ])
 
 # Track layerwise evolution of biases
@@ -197,9 +203,25 @@ def record_all_biases():
     bd2s.append(bd2.eval())
     bouts.append(bout.eval())
 
-# Get euclidian distance between most recent bias vector and original biases
-def euclid_dist(bias_list):
-    return np.linalg.norm(bias_list[-1] - bias_list[0])
+# Track layerwise evolution of weights
+wc1s = []
+wc2s = []
+wc3s = []
+wd1s = []
+wd2s = []
+wouts = []
+
+def record_all_weights():
+    wc1s.append(wc1.eval().flatten())
+    wc2s.append(wc2.eval().flatten())
+    wc3s.append(wc3.eval().flatten())
+    wd1s.append(wd1.eval().flatten())
+    wd2s.append(wd2.eval().flatten())
+    wouts.append(wout.eval().flatten())
+
+# Get euclidian distance between most recent weight/bias vector and original weights/biases
+def euclid_dist(vector_list):
+    return np.linalg.norm(vector_list[-1] - vector_list[0])
 
 # Launch the graph
 with tf.Session() as sess:
@@ -211,8 +233,9 @@ with tf.Session() as sess:
     if TRANSPLANTING:
         transplant_saver.restore(sess, TRANSPLANT_PATH)
 
-    # evaluate and record initial biases for each layer
+    # evaluate and record initial biases and weights for each layer
     record_all_biases()
+    record_all_weights()
 
     # initial
     test_acc = sess.run(accuracy, feed_dict={
@@ -235,7 +258,8 @@ with tf.Session() as sess:
             "{:.6f}".format(train_loss),
             "{:.5f}".format(test_acc),
             "{:.6f}".format(test_loss),
-            0, 0, 0, 0, 0, 0
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
             ])
 
     # Print to console
@@ -262,6 +286,7 @@ with tf.Session() as sess:
 
             # evaluate and record biases for each layer
             record_all_biases()
+            record_all_weights()
 
             # Output benchmarks to csv
             with open(fpath, 'a') as csvfile:
@@ -279,6 +304,12 @@ with tf.Session() as sess:
                     euclid_dist(bd1s),
                     euclid_dist(bd2s),
                     euclid_dist(bouts),
+                    euclid_dist(wc1s),
+                    euclid_dist(wc2s),
+                    euclid_dist(wc3s),
+                    euclid_dist(wd1s),
+                    euclid_dist(wd2s),
+                    euclid_dist(wouts),
                     ])
             # Print to console
             print "Iter " + str(step * batch_size) + " - Test (Loss: " + "{:.6f}".format(test_loss) + ", Acc: " + "{:.5f}".format(test_acc) + ")" + "; Train (Loss: " + "{:.6f}".format(train_loss) + ", Acc: " + "{:.5f}".format(train_acc) + ")"
