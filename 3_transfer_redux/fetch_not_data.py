@@ -10,7 +10,7 @@ import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("category", type=str, help="class to train")
+    parser.add_argument("category", nargs='*', help="class to train")
     args = parser.parse_args()
     CATEGORY = args.category
 
@@ -39,7 +39,13 @@ def get_images(tags, total):
             to_return.append(url)
     return to_return
 
-for tag, filetag, filenum in [(CATEGORY, CATEGORY, 100), ('-' + CATEGORY, 'not' + CATEGORY, 100)]:
+def negate(str):
+    return 'not ' + str
+
+list_of_nots = map(negate, CATEGORY)
+str_of_nots = (' ').join(list_of_nots)
+
+for tag, filetag, filenum in [('test', 'test', 100), (str_of_nots, str_of_nots, 5000)]:
     # create dir
     cur_output_dir = os.path.join(output_file_dir, filetag)
     if not os.path.exists(cur_output_dir):
