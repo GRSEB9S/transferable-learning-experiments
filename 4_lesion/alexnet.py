@@ -170,7 +170,7 @@ if not os.path.exists('./results/checkpoints'):
     os.makedirs('./results/checkpoints')
 
 if TRANSPLANTING:  # TODO
-    fpath = "results/" + TRANSPLANT_CLASS + POS_CLASS + LESION_INDICATOR + "_performance_" + utils.date_stamp() + ".csv"
+    fpath = "results/" + TRANSPLANT_CLASS + POS_CLASS + LESION_INDICATOR +  "_performance_" + utils.date_stamp() + ".csv"
 else:
     fpath = "results/" + POS_CLASS + "_performance_" + utils.date_stamp() + ".csv"
 
