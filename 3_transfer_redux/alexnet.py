@@ -4,13 +4,14 @@ import tensorflow as tf
 import csv
 import os.path
 import datetime
+import numpy as np
 
 
 # TRANSPLANTING
 # TRANSPLANT_PATH
 
 # IO Things
-POS_CLASS = 'eye'
+POS_CLASS = 'watch'
 
 # ensure unique datetime filenames
 def djanky_date():
@@ -25,8 +26,8 @@ if __name__ == "__main__":
 
     POS_CLASS = args.pos_class
     TRANSPLANTING = args.transplanting
-    TRANSPLANT_CLASS = 'wallet'
-    TRANSPLANT_PATH = './results/checkpoints/' + TRANSPLANT_CLASS + '_' + djanky_date() + '.ckpt'
+    TRANSPLANT_CLASS = 'dog'
+    TRANSPLANT_PATH = './results/checkpoints/dog_01_14-28-45_weights.ckpt'
 
 positive_dir = "./data/" + POS_CLASS
 negative_dir = "./data/not" + POS_CLASS
@@ -167,7 +168,60 @@ else:
 with open(fpath, 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',',
                         quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(["iteration", "train_accuracy", "train_loss", "test_accuracy", "test_loss"])
+    writer.writerow(["iteration",
+                     "train_accuracy",
+                     "train_loss",
+                     "test_accuracy",
+                     "test_loss",
+                     "BC1_dist",
+                     "BC2_dist",
+                     "BC3_dist",
+                     "BD1_dist",
+                     "BD2_dist",
+                     "BOUT_dist",
+                     "WC1_dist",
+                     "WC2_dist",
+                     "WC3_dist",
+                     "WD1_dist",
+                     "WD2_dist",
+                     "WOUT_dist",
+                     ])
+
+# Track layerwise evolution of biases
+bc1s = []
+bc2s = []
+bc3s = []
+bd1s = []
+bd2s = []
+bouts = []
+
+def record_all_biases():
+    bc1s.append(bc1.eval())
+    bc2s.append(bc2.eval())
+    bc3s.append(bc3.eval())
+    bd1s.append(bd1.eval())
+    bd2s.append(bd2.eval())
+    bouts.append(bout.eval())
+
+# Track layerwise evolution of weights
+wc1s = []
+wc2s = []
+wc3s = []
+wd1s = []
+wd2s = []
+wouts = []
+
+def record_all_weights():
+    wc1s.append(wc1.eval().flatten())
+    wc2s.append(wc2.eval().flatten())
+    wc3s.append(wc3.eval().flatten())
+    wd1s.append(wd1.eval().flatten())
+    wd2s.append(wd2.eval().flatten())
+    wouts.append(wout.eval().flatten())
+
+# Get euclidian distance between most recent weight/bias vector and original weights/biases
+def euclid_dist(vector_list):
+    return np.linalg.norm(vector_list[-1] - vector_list[0])
 
 # Launch the graph
 with tf.Session() as sess:
@@ -178,6 +232,10 @@ with tf.Session() as sess:
 
     if TRANSPLANTING:
         transplant_saver.restore(sess, TRANSPLANT_PATH)
+
+    # evaluate and record initial biases and weights for each layer
+    record_all_biases()
+    record_all_weights()
 
     # initial
     test_acc = sess.run(accuracy, feed_dict={
@@ -195,7 +253,14 @@ with tf.Session() as sess:
         writer = csv.writer(csvfile, delimiter=',',
                             quotechar='|', quoting=csv.QUOTE_MINIMAL)
         writer.writerow(
-            [0, "{:.5f}".format(train_acc), "{:.6f}".format(train_loss), "{:.5f}".format(test_acc), "{:.6f}".format(test_loss)])
+            [0,
+            "{:.5f}".format(train_acc),
+            "{:.6f}".format(train_loss),
+            "{:.5f}".format(test_acc),
+            "{:.6f}".format(test_loss),
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            ])
 
     # Print to console
     print "Iter 0 - Test (Loss: " + "{:.6f}".format(test_loss) + ", Acc: " + "{:.5f}".format(test_acc) + ")" + "; Train (Loss: " + "{:.6f}".format(train_loss) + ", Acc: " + "{:.5f}".format(train_acc) + ")"
@@ -219,12 +284,33 @@ with tf.Session() as sess:
             train_loss = sess.run(cost, feed_dict={
                             x: data.train.images, y: data.train.labels, keep_prob: 1.})
 
+            # evaluate and record biases for each layer
+            record_all_biases()
+            record_all_weights()
+
             # Output benchmarks to csv
             with open(fpath, 'a') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',',
                                     quotechar='|', quoting=csv.QUOTE_MINIMAL)
                 writer.writerow(
-                    [step * batch_size, "{:.5f}".format(train_acc), "{:.6f}".format(train_loss), "{:.5f}".format(test_acc), "{:.6f}".format(test_loss)])
+                    [step * batch_size,
+                    "{:.5f}".format(train_acc),
+                    "{:.6f}".format(train_loss),
+                    "{:.5f}".format(test_acc),
+                    "{:.6f}".format(test_loss),
+                    euclid_dist(bc1s),
+                    euclid_dist(bc2s),
+                    euclid_dist(bc3s),
+                    euclid_dist(bd1s),
+                    euclid_dist(bd2s),
+                    euclid_dist(bouts),
+                    euclid_dist(wc1s),
+                    euclid_dist(wc2s),
+                    euclid_dist(wc3s),
+                    euclid_dist(wd1s),
+                    euclid_dist(wd2s),
+                    euclid_dist(wouts),
+                    ])
             # Print to console
             print "Iter " + str(step * batch_size) + " - Test (Loss: " + "{:.6f}".format(test_loss) + ", Acc: " + "{:.5f}".format(test_acc) + ")" + "; Train (Loss: " + "{:.6f}".format(train_loss) + ", Acc: " + "{:.5f}".format(train_acc) + ")"
 
