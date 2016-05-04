@@ -62,8 +62,8 @@ if __name__ == "__main__":
             alexnet.load_transplant(load_transplant_dir)
 
         if args.lesion_indicator is not '':
-            layers = [i for i, e in enumerate(LESION_INDICATORS) if e == '0']
-            alex_net.lesion_layers(layers)
+            layers = [i for i, e in enumerate(args.lesion_indicator) if e == '0']
+            alexnet.lesion_layers(layers)
 
         # Train
         log.log("[Training...]")
