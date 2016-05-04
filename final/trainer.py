@@ -26,20 +26,24 @@ perfs = []
 if __name__ == "__main__":
     # parse args out
     parser = argparse.ArgumentParser()
-    parser.add_argument("identifier", type=str, help="A uniquely identifying string for this file")
+    parser.add_argument("identifier", type=str, help="A uniquely identifying string for this file with format [init_weights_class]_[training_class]")
     parser.add_argument("pos_class", type=str, help="Which folder in data/Flickr_2800/ to load for training")
     parser.add_argument('-t', '--transplant', type=str, help='The identifier of the transplant to start from')
     parser.add_argument('-l', '--lesion_indicator', type=str, default='')
     args = parser.parse_args()
 
     # load user configured constants
-    IDENTIFIER = args.identifier  # TODO datestamp and lesion inidicator
+    if args.lesion_indicator is not '':
+        IDENTIFIER = args.identifier + '_t' + args.lesion_indicator + utils.datestr()
+    else:
+        IDENTIFIER = args.identifier + utils.datestr()
+
     POSITIVE_IMAGE_DIR = os.path.join('data/Flickr_2800', args.pos_class)
 
     # let the user know what we're up to
     log.log("Training " + IDENTIFIER + " FROM " + POSITIVE_IMAGE_DIR)
     if args.transplant is not None:
-        log.log("(Starting from " + args.transplant + ")")
+        log.log("(Starting from " + args.transplant + "_t" + args.lesion_indicator + ")")
     else:
         log.log("(Starting from <blank net, random weights>)")
 
@@ -58,7 +62,8 @@ if __name__ == "__main__":
             alexnet.load_transplant(load_transplant_dir)
 
         if args.lesion_indicator is not '':
-            
+            layers = [i for i, e in enumerate(LESION_INDICATORS) if e == '0']
+            alex_net.lesion_layers(layers)
 
         # Train
         log.log("[Training...]")
@@ -84,8 +89,6 @@ if __name__ == "__main__":
 
                 # log it
                 log.log(curr_perf)
-
-                # TODO save layerwise evolution and write to CSV
 
             else:
                 # print how long until next perf
