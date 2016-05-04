@@ -1,4 +1,5 @@
 from __future__ import print_function
+import matplotlib.pyplot as plt
 import gzip
 import os
 import urllib
@@ -89,6 +90,9 @@ class Data(object):
         return self.x(start, end), self.y(start, end)
 
     def graph(self, x, y):
+        plt.gray()
+
         for i in xrange(x * y):
             plt.subplot(y, x, i + 1)
             plt.imshow(self._data[i][0].reshape(IMG_WIDTH, IMG_HEIGHT))
+        plt.plot()
