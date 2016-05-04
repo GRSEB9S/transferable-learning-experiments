@@ -15,7 +15,7 @@ with open("./settings.config", "rb") as settings_file:
     settings = json.load(settings_file)
     flickr = flickrapi.FlickrAPI(settings["KEY"], settings["SECRET"], format='parsed-json')
 
-# NOTE: total must be divisible by 100
+
 def get_images(tags, total):
     if total % 100 != 0:
         print "Total must be divisible by 100!"

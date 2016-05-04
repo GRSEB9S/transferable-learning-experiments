@@ -1,3 +1,10 @@
+'''
+    (Since modified) AlexNet implementation example using Google's TensorFlow library.
+
+    Original Author: Aymeric Damien
+    Project: https://github.com/aymericdamien/TensorFlow-Examples/
+'''
+
 import argparse
 import tensorflow as tf
 import csv
@@ -119,10 +126,10 @@ lesion_lookup = {
 checkpoint_saver = tf.train.Saver()
 transplant_saver = tf.train.Saver(var_lookup.values())
 
+
 # Randomizes a TF variable
 def lesion(var):
     return tf.assign(var, tf.random_normal(tf.shape(var)))
-
 
 # Initializing the variables
 init = tf.initialize_all_variables()
@@ -139,7 +146,6 @@ class AlexNet(object):
 
     def record_all_biases_and_weights(self):
         assert(self._sess is not None)
-
         return {k: self._sess.run(v) for k, v in var_lookup.iteritems()}
 
     def save_full_checkpoint(self, path):
@@ -168,7 +174,7 @@ class AlexNet(object):
         self._sess.run(lesion(lesion_lookup[layer_index][0]))
         self._sess.run(lesion(lesion_lookup[layer_index][1]))
 
-    # layerrs = bit string of length 6
+    # layers = bit string of length 6
     def lesion_layers(self, layers):
         assert(self._sess is not None)
         for layer in layers:
