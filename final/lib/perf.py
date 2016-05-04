@@ -24,7 +24,7 @@ class Perf(object):
         plt.scatter(x, y, c=c)
 
     def _graph_best_fit(self, x, y, c):
-        coeffs =np.polyfit(x, y, FIT_DEGREE)
+        coeffs = np.polyfit(x, y, FIT_DEGREE)
         x_prime = np.arange(min(x)-1, max(x)+1, .01)
         y_prime = np.polyval(coeffs, x_prime)
         plt.plot(x_prime, y_prime)
@@ -32,8 +32,8 @@ class Perf(object):
     def graph(self):
         # get scatter plot data
         x = []
-        y1 = [] # accuracy
-        y2 = [] # loss
+        y1 = []  # accuracy
+        y2 = []  # loss
 
         for perf in self._data:
             x.append(float(perf['step']))

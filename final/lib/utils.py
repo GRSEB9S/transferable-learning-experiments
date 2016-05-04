@@ -1,9 +1,15 @@
 import os
 import datetime
 
+
 def datestr():
-    return str(datetime.datetime.now()).split('.')[0][8:].replace(' ', '_').replace(':', '-')
+    date, time = str(datetime.datetime.now()).split('.')[0][5:16].split(' ')
+    return 'day' + date.replace('-', 'mon') + '_' + time.replace(':', 'h')
+
 
 def ensure_path(path):
     if not os.path.exists(path):
         os.makedirs(path)
+
+
+print datestr()

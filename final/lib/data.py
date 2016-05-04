@@ -12,6 +12,7 @@ import sys
 IMG_WIDTH = 40
 IMG_HEIGHT = 40
 
+
 class Data(object):
     def __init__(self, data=None):
         # data source

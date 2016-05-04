@@ -9,7 +9,7 @@ learning_rate = 0.0001
 # Network Parameters
 n_input = 40 * 40  # data input (img shape: 40x40)
 n_classes = 2  # total classes (we're using a binary classifier here)
-dropout = 0.8  # Dropout, probability to keep units
+dropout = 0.8  # dropout, probability to keep units
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_input])
@@ -20,23 +20,26 @@ keep_prob = tf.placeholder(tf.float32)  # dropout (keep probability)
 def conv2d(name, l_input, w, b):
     return tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(l_input, w, strides=[1, 1, 1, 1], padding='SAME'), b), name=name)
 
+
 def max_pool(name, l_input, k):
     return tf.nn.max_pool(l_input, ksize=[1, k, k, 1], strides=[1, k, k, 1], padding='SAME', name=name)
 
+
 def norm(name, l_input, lsize=4):
     return tf.nn.lrn(l_input, lsize, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name=name)
+
 
 def alex_net(_X, _dropout):
     # Reshape input picture
     _X = tf.reshape(_X, shape=[-1, 40, 40, 1])
 
-    # Third convolutional layer
+    # First convolutional layer
     conv1 = conv2d('conv1', _X, wc1, bc1)
     pool1 = max_pool('pool1', conv1, k=2)
     norm1 = norm('norm1', pool1, lsize=4)
     norm1 = tf.nn.dropout(norm1, _dropout)
 
-    # Third convolutional layer
+    # Second convolutional layer
     conv2 = conv2d('conv2', norm1, wc2, bc2)
     pool2 = max_pool('pool2', conv2, k=2)
     norm2 = norm('norm2', pool2, lsize=4)
@@ -115,13 +118,14 @@ lesion_lookup = {
 checkpoint_saver = tf.train.Saver()
 transplant_saver = tf.train.Saver(var_lookup.values())
 
-# Convenience function for it all
+# Randomizes a TF variable
 def lesion(var):
-    """ Randomizes the weights and biases for a given layer """
     return tf.assign(var, tf.random_normal(tf.shape(var)))
+
 
 # Initializing the variables
 init = tf.initialize_all_variables()
+
 
 class AlexNet(object):
     def __init__(self):
@@ -130,7 +134,6 @@ class AlexNet(object):
     def __enter__(self):
         self._sess = tf.Session()
         self._sess.run(init)
-
         return self
 
     def save_full_checkpoint(self, path):
@@ -152,7 +155,6 @@ class AlexNet(object):
     def train(self, training_data):
         assert(self._sess is not None)
         assert(training_data is not None)
-
         self._sess.run(optimizer, feed_dict={x: training_data[0], y: training_data[1], keep_prob: dropout})
 
     def lesion_layer(self, layer):
