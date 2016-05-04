@@ -6,6 +6,27 @@ import lib.log as log
 import numpy as np
 import os
 
+# if __name__ == "__main__": TODO structure this based on Tomas's improved code struct below
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument("pos_class", type=str, help="class to train")
+#     parser.add_argument('-t', '--transplanting', action='store_true', default=False)
+#     parser.add_argument('-c', '--transplanting_class', type=str)
+#     parser.add_argument('-p', '--transplanting_fname', type=str)
+#     parser.add_argument('-l', '--lesion_indicator', type=str, default='111111')
+#     args = parser.parse_args()
+#
+#     POS_CLASS = args.pos_class
+#     TRANSPLANTING = args.transplanting
+#     TRANSPLANT_CLASS = args.transplanting_class
+#     LESION_INDICATOR = args.lesion_indicator
+#
+#     #
+#     # transplanting_fname takes the form [class_of_weights_to_import][model_date].ckpt
+#     #
+#     if args.transplanting_fname:
+#         TRANSPLANT_PATH = './results/checkpoints/' + args.transplanting_fname
+#
+
 # training params
 training_iters = 10000
 batch_size = 50
@@ -22,15 +43,21 @@ TRANSPLANT_DIR = 'results/transfer'
 perfs = []
 
 # to configure
-IDENTIFIER = 'eye_net'
+IDENTIFIER = 'eye_net' # TODO from command line. init-[old class]_trainedon-[new class]_lesion[bit string]_timestamp
 
 with AlexNet() as alexnet:
     # Load data
     log.log("[Loading Data...]")
     all_data = Data()
-    all_data.load_images('data/Flickr_2800/eye_2800', POSITIVE_LABEL)
+    all_data.load_images('data/Flickr_2800/eye_2800', POSITIVE_LABEL) # TODO Should be frm cmd line
     all_data.load_images('data/Flickr_2800/notall', NEGATIVE_LABEL)
     train_data, test_data = all_data.split_train_test(train_split=0.90)
+
+    # Initialize net
+
+    # If transplating TODO
+
+    # Save initial metrics TODO
 
     # Train
     log.log("[Training...]")
@@ -56,6 +83,9 @@ with AlexNet() as alexnet:
 
             # log it
             log.log(curr_perf)
+
+            # TODO save layerwise evolution and write to CSV
+
         else:
             # print how long until next perf
             done = float(i % display_step) / display_step
