@@ -29,11 +29,11 @@ if __name__ == "__main__":
     parser.add_argument("identifier", type=str, help="A uniquely identifying string for this file")
     parser.add_argument("pos_class", type=str, help="Which folder in data/Flickr_2800/ to load for training")
     parser.add_argument('-t', '--transplant', type=str, help='The identifier of the transplant to start from')
-    # parser.add_argument('-l', '--lesion_indicator', type=str, default='111111')
+    parser.add_argument('-l', '--lesion_indicator', type=str, default='')
     args = parser.parse_args()
 
     # load user configured constants
-    IDENTIFIER = args.identifier
+    IDENTIFIER = args.identifier  # TODO datestamp and lesion inidicator
     POSITIVE_IMAGE_DIR = os.path.join('data/Flickr_2800', args.pos_class)
 
     # let the user know what we're up to
@@ -56,6 +56,9 @@ if __name__ == "__main__":
         if args.transplant is not None:
             load_transplant_dir = os.path.join(TRANSPLANT_DIR, args.transplant + '.ckpt')
             alexnet.load_transplant(load_transplant_dir)
+
+        if args.lesion_indicator is not '':
+            
 
         # Train
         log.log("[Training...]")
