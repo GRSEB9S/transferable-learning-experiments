@@ -132,50 +132,15 @@ class AlexNet(object):
     def __init__(self):
         self._sess = None
 
-        # Track layerwise evolution of biases
-        self.bc1s = []
-        self.bc2s = []
-        self.bc3s = []
-        self.bd1s = []
-        self.bd2s = []
-        self.bouts = []
-
-        # Track layerwise evolution of weights
-        self.wc1s = []
-        self.wc2s = []
-        self.wc3s = []
-        self.wd1s = []
-        self.wd2s = []
-        self.wouts = []
-
     def __enter__(self):
         self._sess = tf.Session()
         self._sess.run(init)
         return self
 
-    # TODO Clean up the next three funcs and maybe move to Perf
-    def record_all_biases(self):
-        self.bc1s.append(bc1.eval())
-        self.bc2s.append(bc2.eval())
-        self.bc3s.append(bc3.eval())
-        self.bd1s.append(bd1.eval())
-        self.bd2s.append(bd2.eval())
-        self.bouts.append(bout.eval())
+    def record_all_biases_and_weights(self):
+        assert(self._sess is not None)
 
-    def record_all_weights(self):
-        self.wc1s.append(wc1.eval().flatten())
-        self.wc2s.append(wc2.eval().flatten())
-        self.wc3s.append(wc3.eval().flatten())
-        self.wd1s.append(wd1.eval().flatten())
-        self.wd2s.append(wd2.eval().flatten())
-        self.wouts.append(wout.eval().flatten())
-
-    def euclid_dist(vector_list):
-        """
-        Get euclidian distance between most recent
-        weight/bias vector and original weights/biases
-        """
-        return np.linalg.norm(vector_list[-1] - vector_list[0])
+        return {k: self._sess.run(v) for k, v in var_lookup.iteritems()}
 
     def save_full_checkpoint(self, path):
         assert(self._sess is not None)
