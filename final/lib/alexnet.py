@@ -1,3 +1,10 @@
+'''
+    (Since modified) AlexNet implementation example using Google's TensorFlow library.
+
+    Original Author: Aymeric Damien
+    Project: https://github.com/aymericdamien/TensorFlow-Examples/
+'''
+
 import argparse
 import tensorflow as tf
 import csv
