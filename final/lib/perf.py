@@ -12,6 +12,9 @@ class Perf(object):
     def __init__(self, data=None):
         self._data = data
 
+    def get_data(self):
+        return self._data
+
     def save(self, path):
         with open(path, 'w') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=FIELD_NAMES)
