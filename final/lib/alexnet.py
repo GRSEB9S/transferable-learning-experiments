@@ -9,6 +9,7 @@ import argparse
 import tensorflow as tf
 import csv
 import os.path
+import log
 
 # Parameters
 learning_rate = 0.0001
@@ -171,6 +172,7 @@ class AlexNet(object):
 
     def lesion_layer(self, layer_index):
         assert(self._sess is not None)
+        log.log('Lesioning Layer ' + str(layer_index))
         self._sess.run(lesion(lesion_lookup[layer_index][0]))
         self._sess.run(lesion(lesion_lookup[layer_index][1]))
 
